@@ -1,8 +1,11 @@
 #!/usr/bin/env ruby
 
 require "pty"
+require "rake"
 
 @logfile = "/tmp/pgids"
+
+FileUtils.touch(@logfile)
 
 # Fork off processes to test
 #
@@ -37,6 +40,6 @@ end
 # The parent of the tests is still running too; it
 # will tail the logfile so that we can see the results
 #
-PTY.spawn("tail -f #{@logfile}") do |r, _, _|
-  r.each { |line| print line }
-end
+r, _, @pty_pid = PTY.spawn("tail -f #{@logfile}")
+
+r.each { |line| print line }
