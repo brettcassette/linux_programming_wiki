@@ -2,7 +2,7 @@
 
 require "pty"
 
-@logfile = "/tmp/pids"
+@logfile = "/tmp/pgids"
 
 # Fork off processes to test
 #
@@ -18,7 +18,7 @@ fork do
       sleep 2
 
       File.open(@logfile, "w") do |f|
-        f.puts "child | pid: #{Process.pid} | pgid: #{Process.getpgid(Process.pid)}"
+        f.puts "child | pgid: #{Process.getpgid(Process.pid)}"
       end
     end
   end
@@ -29,7 +29,7 @@ fork do
     sleep 2
 
     File.open(@logfile, "w") do |f|
-      f.puts "parent | pid: #{Process.pid} | pgid: #{Process.getpgid(Process.pid)}"
+      f.puts "parent | pgid: #{Process.getpgid(Process.pid)}"
     end
   end
 end
