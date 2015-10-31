@@ -7,6 +7,10 @@ require "rake"
 
 FileUtils.touch(@logfile)
 
+def get_child_info()
+  Hash[*`ps -eo pid,ppid | grep #{Process.pid}`.scan(/\d+/).map{|x|x.to_i}].reject { |k,v| k == Process.pid }
+end
+
 # Fork off processes to test
 #
 fork do
@@ -21,7 +25,7 @@ fork do
       sleep 2
 
       File.open(@logfile, "w") do |f|
-        f.puts "child | pgid: #{Process.getpgid(Process.pid)}"
+        f.puts "child | pid: #{Process.pid} | pgid: #{Process.getpgid(Process.pid)}"
       end
     end
   end
@@ -32,7 +36,7 @@ fork do
     sleep 2
 
     File.open(@logfile, "w") do |f|
-      f.puts "parent | pgid: #{Process.getpgid(Process.pid)}"
+      f.puts "parent | pid: #{Process.pid} | pgid: #{Process.getpgid(Process.pid)}"
     end
   end
 end
@@ -41,5 +45,19 @@ end
 # will tail the logfile so that we can see the results
 #
 r, _, @pty_pid = PTY.spawn("tail -f #{@logfile}")
+
+trap "INT" do
+  get_child_info.keys.each do |pid|
+    begin
+      Process.kill("KILL", pid)
+      Process.wait(pid)
+    rescue Errno::ESRCH
+    end
+  end
+
+  puts "Process | pid #{Process.pid} | ppid #{Process.ppid} | pgid #{Process.getpgid(Process.pid)}"
+
+  exit
+end
 
 r.each { |line| print line }
