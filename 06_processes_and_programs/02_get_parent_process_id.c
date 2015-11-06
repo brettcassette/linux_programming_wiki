@@ -2,6 +2,6 @@
 #include <stdio.h>
 
 int main() {
-  printf("%d", getpid());
+  printf("%i", getppid());
   return 0;
 }
